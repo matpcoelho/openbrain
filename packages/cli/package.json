@@ -1,0 +1,31 @@
+{
+  "name": "openbrain-ai",
+  "version": "0.1.0",
+  "description": "CLI for OpenBrain - cross-AI memory system",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "openbrain": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  },
+  "files": [
+    "dist/"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "memory",
+    "embeddings",
+    "cli",
+    "supabase",
+    "claude",
+    "chatgpt"
+  ]
+}

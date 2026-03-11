@@ -1,0 +1,16 @@
+{
+  "name": "openbrain",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Cross-AI memory system. Your AI tools share one brain.",
+  "workspaces": [
+    "packages/mcp-server",
+    "packages/cli"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "build:mcp": "npm run build -w packages/mcp-server",
+    "build:cli": "npm run build -w packages/cli"
+  },
+  "license": "MIT"
+}
