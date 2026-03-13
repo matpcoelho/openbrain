@@ -23,8 +23,7 @@ CREATE TABLE memories (
 
 -- 3. Indexes for vector similarity search
 CREATE INDEX memories_embedding_idx ON memories
-  USING ivfflat (embedding vector_cosine_ops)
-  WITH (lists = 100);
+  USING hnsw (embedding vector_cosine_ops);
 
 -- 4. Indexes for filtering
 CREATE INDEX memories_source_idx ON memories (source);
@@ -143,10 +142,12 @@ ALTER TABLE memories ENABLE ROW LEVEL SECURITY;
 -- Service role gets full access (backend operations)
 CREATE POLICY "Service role full access" ON memories
   FOR ALL
+  TO service_role
   USING (true)
   WITH CHECK (true);
 
 -- Anon role gets read access (MCP clients using anon key)
 CREATE POLICY "Anon read access" ON memories
   FOR SELECT
+  TO anon
   USING (true);

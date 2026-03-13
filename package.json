@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "Cross-AI memory system. Your AI tools share one brain.",
   "workspaces": [
+    "packages/shared",
     "packages/mcp-server",
     "packages/cli"
   ],

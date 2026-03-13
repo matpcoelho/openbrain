@@ -1,20 +1,28 @@
 /**
- * Show brain statistics.
+ * Show brain statistics using server-side aggregation.
  */
 
 import { loadConfig } from "../config.js";
+
+interface StatsResult {
+  total: number;
+  by_source: Record<string, number>;
+  by_category: Record<string, number>;
+}
 
 export async function stats(): Promise<void> {
   const config = loadConfig();
 
   const resp = await fetch(
-    `${config.supabaseUrl}/rest/v1/memories?select=source,category`,
+    `${config.supabaseUrl}/rest/v1/rpc/brain_stats`,
     {
+      method: "POST",
       headers: {
         apikey: config.supabaseKey,
         Authorization: `Bearer ${config.supabaseKey}`,
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({}),
     }
   );
 
@@ -24,24 +32,17 @@ export async function stats(): Promise<void> {
     process.exit(1);
   }
 
-  const all = await resp.json();
-  const sources: Record<string, number> = {};
-  const categories: Record<string, number> = {};
+  const result: StatsResult = await resp.json();
 
-  for (const m of all) {
-    sources[m.source] = (sources[m.source] || 0) + 1;
-    categories[m.category] = (categories[m.category] || 0) + 1;
-  }
-
-  console.log(`Total memories: ${all.length}\n`);
+  console.log(`Total memories: ${result.total}\n`);
 
   console.log("By source:");
-  for (const [s, c] of Object.entries(sources).sort((a, b) => b[1] - a[1])) {
+  for (const [s, c] of Object.entries(result.by_source).sort((a, b) => b[1] - a[1])) {
     console.log(`  ${s}: ${c}`);
   }
 
   console.log("\nBy category:");
-  for (const [s, c] of Object.entries(categories).sort((a, b) => b[1] - a[1])) {
+  for (const [s, c] of Object.entries(result.by_category).sort((a, b) => b[1] - a[1])) {
     console.log(`  ${s}: ${c}`);
   }
 }

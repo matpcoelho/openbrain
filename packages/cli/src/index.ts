@@ -16,6 +16,8 @@ Usage:
   openbrain store "memory text" [options]             Store a memory
   openbrain search "query" [options]                  Search memories
   openbrain list [options]                            List recent memories
+  openbrain delete <id>                              Delete a memory by ID
+  openbrain update <id> [options]                    Update a memory by ID
   openbrain stats                                    Brain statistics
 
 Store options:
@@ -29,6 +31,12 @@ Search options:
   --source <src>      Filter by source
   --category <cat>    Filter by category
   --threshold <n>     Similarity threshold 0-1 (default: 0.5)
+
+Update options:
+  --content <text>    New content (re-generates embedding)
+  --category <cat>    New category
+  --tags <t1,t2>      New comma-separated tags
+  --summary <text>    New summary
 
 List options:
   --limit <n>         Max results (default: 20)
@@ -88,6 +96,29 @@ async function main(): Promise<void> {
       const opts = parseOptions(args.slice(1));
       const { list } = await import("./commands/list.js");
       await list(opts);
+      break;
+    }
+
+    case "delete": {
+      const id = args[1];
+      if (!id) {
+        console.error("Usage: openbrain delete <id>");
+        process.exit(1);
+      }
+      const { deleteMemory } = await import("./commands/delete.js");
+      await deleteMemory(id);
+      break;
+    }
+
+    case "update": {
+      const id = args[1];
+      if (!id) {
+        console.error('Usage: openbrain update <id> --content "new content" [--category decision --tags tag1,tag2]');
+        process.exit(1);
+      }
+      const opts = parseOptions(args.slice(2));
+      const { update } = await import("./commands/update.js");
+      await update(id, opts);
       break;
     }
 

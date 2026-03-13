@@ -13,8 +13,9 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { readFileSync } from "fs";
-import { resolve } from "path";
+import { resolve, dirname } from "path";
 import { homedir } from "os";
+import { fileURLToPath } from "url";
 import { SupabaseClient } from "./supabase.js";
 import { createProvider, type EmbeddingProvider } from "./embeddings.js";
 
@@ -141,28 +142,45 @@ async function deleteMemory(args: { id: string }): Promise<void> {
   await db.request("DELETE", `memories?id=eq.${args.id}`);
 }
 
+async function updateMemory(args: {
+  id: string;
+  content?: string;
+  category?: string;
+  tags?: string[];
+  summary?: string;
+}): Promise<Memory[]> {
+  const record: Record<string, unknown> = {};
+
+  if (args.content) {
+    record.content = args.content;
+    record.embedding = await embedder.embed(args.content);
+  }
+  if (args.category) record.category = args.category;
+  if (args.tags) record.tags = args.tags;
+  if (args.summary) record.summary = args.summary;
+
+  return db.request<Memory[]>("PATCH", `memories?id=eq.${args.id}`, record);
+}
+
 async function getStats(): Promise<{
   total: number;
   by_source: Record<string, number>;
   by_category: Record<string, number>;
 }> {
-  const all = await db.request<Array<{ source: string; category: string }>>(
-    "GET",
-    "memories?select=source,category"
-  );
-  const sources: Record<string, number> = {};
-  const categories: Record<string, number> = {};
-  for (const m of all) {
-    sources[m.source] = (sources[m.source] || 0) + 1;
-    categories[m.category] = (categories[m.category] || 0) + 1;
-  }
-  return { total: all.length, by_source: sources, by_category: categories };
+  return db.rpc<{
+    total: number;
+    by_source: Record<string, number>;
+    by_category: Record<string, number>;
+  }>("brain_stats", {});
 }
 
 // --- MCP Server ---
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const packageJson = JSON.parse(readFileSync(resolve(__dirname, "..", "package.json"), "utf-8"));
+
 const server = new Server(
-  { name: "openbrain", version: "0.1.0" },
+  { name: "openbrain", version: packageJson.version },
   { capabilities: { tools: {} } }
 );
 
@@ -279,6 +297,39 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         properties: {},
       },
     },
+    {
+      name: "update_memory",
+      description:
+        "Update an existing memory by ID. Re-generates embedding if content is changed.",
+      inputSchema: {
+        type: "object" as const,
+        properties: {
+          id: {
+            type: "string",
+            description: "UUID of the memory to update",
+          },
+          content: {
+            type: "string",
+            description: "New content (triggers embedding regeneration)",
+          },
+          category: {
+            type: "string",
+            enum: [...VALID_CATEGORIES],
+            description: "New category",
+          },
+          tags: {
+            type: "array",
+            items: { type: "string" },
+            description: "New tags",
+          },
+          summary: {
+            type: "string",
+            description: "New summary",
+          },
+        },
+        required: ["id"],
+      },
+    },
   ],
 }));
 
@@ -335,6 +386,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         await deleteMemory(args as Parameters<typeof deleteMemory>[0]);
         return {
           content: [{ type: "text" as const, text: `Memory deleted: ${(args as { id: string }).id}` }],
+        };
+      }
+
+      case "update_memory": {
+        const updateArgs = args as Parameters<typeof updateMemory>[0];
+        if (!updateArgs.content && !updateArgs.category && !updateArgs.tags && !updateArgs.summary) {
+          return {
+            content: [{ type: "text" as const, text: "Nothing to update. Provide at least one of: content, category, tags, summary." }],
+            isError: true,
+          };
+        }
+        await updateMemory(updateArgs);
+        return {
+          content: [{ type: "text" as const, text: `Memory updated: ${updateArgs.id}` }],
         };
       }
 

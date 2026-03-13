@@ -189,6 +189,19 @@ openbrain/
 - [MCP Setup](docs/mcp-setup.md) - Claude Desktop, Cursor, and OpenClaw integration
 - [API Reference](docs/api-reference.md) - Edge function endpoints
 
+## Development
+
+Clone and build:
+
+```bash
+git clone https://github.com/open-brain-ai/openbrain.git
+cd openbrain
+npm install
+npm run build
+```
+
+This builds both the CLI and MCP server packages.
+
 ## Contributing
 
 Contributions are welcome. Open an issue first for anything non-trivial.

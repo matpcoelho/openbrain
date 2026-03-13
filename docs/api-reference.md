@@ -210,6 +210,10 @@ All errors follow this format:
 
 The API includes permissive CORS headers (`Access-Control-Allow-Origin: *`) so it can be called from browser extensions and web applications.
 
+### Security Note
+
+The default CORS configuration allows requests from any origin. For production deployments, restrict the `Access-Control-Allow-Origin` header to your specific domain(s) in the edge function code. Leaving it as `*` means any website can make requests to your API if the endpoint URL and credentials are known.
+
 ## Deployment
 
 See [Setup Guide](setup-guide.md) for deployment instructions.
