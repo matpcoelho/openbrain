@@ -5,6 +5,9 @@ dist/
 *.js.map
 !jest.config.js
 
+# Chrome extension is plain JS, not compiled
+!packages/chrome-extension/*.js
+
 # Environment
 .env
 .env.local

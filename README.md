@@ -121,9 +121,17 @@ See [docs/api-reference.md](docs/api-reference.md) for the full API.
 
 ### Chrome Extension
 
-A companion Chrome extension (separate install) lets you capture context directly from ChatGPT, Gemini, Perplexity, and other AI web interfaces with one click.
+The Chrome extension adds Save Chat and Load Context buttons directly into your AI tools' web UIs. One click to push a conversation to your brain, one click to pull context in.
 
-**Supported AI tools via extension:** ChatGPT, Claude, Gemini, Perplexity, Grok, DeepSeek, Mistral, Copilot, Poe.
+**Supported:** ChatGPT, Claude, Gemini, Perplexity, Grok, DeepSeek, Mistral, Copilot, Poe.
+
+**Install from source:**
+
+1. Go to `chrome://extensions` in Chrome
+2. Enable **Developer Mode** (top right toggle)
+3. Click **Load unpacked**
+4. Select the `packages/chrome-extension` folder from this repo
+5. Click the extension icon > Options to enter your API URL and key
 
 ## Architecture
 
@@ -175,8 +183,10 @@ Memories are organized into categories for better retrieval:
 ```
 openbrain/
 ├── packages/
+│   ├── cli/                 CLI tool (openbrain-ai on npm)
 │   ├── mcp-server/          MCP server (openbrain-mcp on npm)
-│   └── cli/                 CLI tool (openbrain-ai on npm)
+│   ├── chrome-extension/    Browser extension (9 AI services)
+│   └── shared/              Shared embedding utilities
 ├── supabase/
 │   ├── migrations/          Database schema
 │   └── functions/           Edge functions (REST API)
